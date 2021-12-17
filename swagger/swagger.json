@@ -68,22 +68,28 @@
             "type": "object",
             "properties": {
                 "FirstName": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Your firstname"
                 },
                 "LastName": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Your lastname"
                 },
                 "Email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Valid email. (example@gmail.com)"
                 },
                 "Phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "01*********"
                 },
                 "Password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Atleast 4 character"
                 },
                 "DoB": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "dd/mm/yy"
                 }
             }
         }

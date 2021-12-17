@@ -4,8 +4,11 @@ import (
 	// "errors"
 	"database/sql"
 	"fmt"
+	"log"
 
+	"github.com/beego/beego/v2/core/validation"
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -20,47 +23,73 @@ func init() {
 
 type User struct {
 	// Id        string
-	FirstName string
-	LastName  string
-	Email     string
-	Phone     string
-	Password  string
-	DoB       string
+	FirstName string `valid:"Required"`
+	LastName  string `valid:"Required"`
+	Email     string `valid:"Email; MaxSize(100)"`
+	Phone     string `valid:"Phone"`
+	Password  string `valid:"Required; MinSize(4)"`
+	DoB       string `valid:"Required; Match(/(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\\d\\d)/)"`
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
 func AddUser(u User) string {
-	const (
-		host     = "localhost"
-		port     = 5432
-		user     = "postgres"
-		password = "123456"
-		dbname   = "user_db"
-	)
 
-	// u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	// UserList[u.Id] = &u
+	var message string
+	valid := validation.Validation{}
+	b, err := valid.Valid(&u)
 
-	// connection string
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	hash, _ := HashPassword(u.Password)
+	fmt.Println("hashing: ", hash)
 
-	// open database
-	db, err := sql.Open("postgres", psqlconn)
-	CheckError(err)
+	if err != nil {
 
-	// close database
-	defer db.Close()
+	}
+	if !b {
+		// validation does not pass
+		// blabla...
+		for _, err := range valid.Errors {
+			log.Println(err.Key, err.Message)
+			message = err.Message
+		}
+	} else {
+		const (
+			host     = "localhost"
+			port     = 5432
+			user     = "postgres"
+			password = "123456"
+			dbname   = "user_db"
+		)
 
-	sql := `INSERT INTO "user_info"("FirstName", "LastName", "Email", "Phone", "Password", "DoB") VALUES ($1, $2, $3, $4, $5, $6)`
-	_, e := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.Phone, u.Password, u.DoB)
-	CheckError(e)
+		// u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
+		// UserList[u.Id] = &u
 
-	// check db
-	err = db.Ping()
-	CheckError(err)
+		// connection string
+		psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-	fmt.Println("---------->> Connected <<----------")
+		// open database
+		db, err := sql.Open("postgres", psqlconn)
+		CheckError(err)
 
-	return u.FirstName
+		// close database
+		defer db.Close()
+
+		sql := `INSERT INTO "user_info"("FirstName", "LastName", "Email", "Phone", "Password", "DoB") VALUES ($1, $2, $3, $4, $5, $6)`
+		_, e := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.Phone, hash, u.DoB)
+		CheckError(e)
+
+		// check db
+		err = db.Ping()
+		CheckError(err)
+
+		fmt.Println("---------->> Connected <<----------")
+		message = "New user " + u.Email + " created"
+		fmt.Println("New user " + message + " created")
+	}
+	return message
 }
 
 func CheckError(err error) {
