@@ -89,7 +89,7 @@
                 },
                 "DoB": {
                     "type": "string",
-                    "example": "dd/mm/yy"
+                    "example": "mm/dd/yy"
                 }
             }
         }

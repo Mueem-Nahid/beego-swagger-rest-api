@@ -4,6 +4,8 @@ import (
 	"beego-swagger-rest-api/models"
 	"encoding/json"
 
+	// "fmt"
+
 	beego "github.com/beego/beego/v2/server/web"
 )
 
@@ -19,6 +21,13 @@ type UserController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (u *UserController) Post() {
+
+	// u.TplName = "index.tpl"
+	// u.Data["inputFirstName"] = u.GetString("inputFirstName")
+	// u.Data["inputLastName"] = u.GetString("inputLastName")
+	// fmt.Println(u.Data["inputFirstName"])
+	// fmt.Println(u.Data["inputLastName"])
+
 	var user models.User
 	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 	uid := models.AddUser(user)

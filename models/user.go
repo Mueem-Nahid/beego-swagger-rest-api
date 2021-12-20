@@ -26,9 +26,10 @@ type User struct {
 	FirstName string `valid:"Required"`
 	LastName  string `valid:"Required"`
 	Email     string `valid:"Email; MaxSize(100)"`
-	Phone     string `valid:"Phone"`
+	Phone     string `valid:"Required; Phone; Length(11)"`
 	Password  string `valid:"Required; MinSize(4)"`
-	DoB       string `valid:"Required; Match(/(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\\d\\d)/)"`
+	// DoB       string `valid:"Required;Match(/(0?[1-9]|1[012])/(0?[1-9]|[12][0-9]|3[01])/((19|20)\\d\\d)/)"`
+	DoB string
 }
 
 func HashPassword(password string) (string, error) {
@@ -77,7 +78,7 @@ func AddUser(u User) string {
 		// close database
 		defer db.Close()
 
-		sql := `INSERT INTO "user_info"("FirstName", "LastName", "Email", "Phone", "Password", "DoB") VALUES ($1, $2, $3, $4, $5, $6)`
+		sql := `INSERT INTO "user_info"("first_name", "last_name", "email", "phone", "password", "dob") VALUES ($1, $2, $3, $4, $5, $6)`
 		_, e := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.Phone, hash, u.DoB)
 		CheckError(e)
 
