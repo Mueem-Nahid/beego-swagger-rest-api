@@ -28,8 +28,8 @@ type User struct {
 	Email     string `valid:"Email; MaxSize(100)"`
 	Phone     string `valid:"Required; Phone; Length(11)"`
 	Password  string `valid:"Required; MinSize(4)"`
-	// DoB       string `valid:"Required;Match(/(0?[1-9]|1[012])/(0?[1-9]|[12][0-9]|3[01])/((19|20)\\d\\d)/)"`
-	DoB string
+	DoB       string `valid:"Required;Match(/(0?[1-9]|1[012])/(0?[1-9]|[12][0-9]|3[01])/((19|20)\\d\\d)/)"`
+	// DoB string
 }
 
 func HashPassword(password string) (string, error) {
@@ -44,7 +44,7 @@ func AddUser(u User) string {
 	b, err := valid.Valid(&u)
 
 	hash, _ := HashPassword(u.Password)
-	fmt.Println("hashing: ", hash)
+	// fmt.Println("hashing: ", hash)
 
 	if err != nil {
 
@@ -78,17 +78,26 @@ func AddUser(u User) string {
 		// close database
 		defer db.Close()
 
-		sql := `INSERT INTO "user_info"("first_name", "last_name", "email", "phone", "password", "dob") VALUES ($1, $2, $3, $4, $5, $6)`
-		_, e := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.Phone, hash, u.DoB)
-		CheckError(e)
+		var counter int
+		db.QueryRow("select count(*) from user_info where email='" + u.Email + "'").Scan(&counter)
+		// fmt.Println("select count(*) from user_info where email='" + u.Email + "'")
+		fmt.Println("we have ", counter, "rows")
+		if counter > 0 {
+			// fmt.Println("Email already exist")
+			message = u.Email + " already exists!!!"
+		} else {
+			sql := `INSERT INTO "user_info"("first_name", "last_name", "email", "phone", "password", "dob") VALUES ($1, $2, $3, $4, $5, $6)`
+			_, e := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.Phone, hash, u.DoB)
+			CheckError(e)
 
-		// check db
-		err = db.Ping()
-		CheckError(err)
+			// check db
+			err = db.Ping()
+			CheckError(err)
 
-		fmt.Println("---------->> Connected <<----------")
-		message = "New user " + u.Email + " created"
-		fmt.Println("New user " + message + " created")
+			fmt.Println("---------->> Connected <<----------")
+			message = "New user " + u.Email + " created"
+			// fmt.Println("New user " + message + " created")
+		}
 	}
 	return message
 }
@@ -99,53 +108,6 @@ func CheckError(err error) {
 	}
 }
 
-/*
-func GetUser(uid string) (u *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		return u, nil
-	}
-	return nil, errors.New("User not exists")
-} */
-
 func GetAllUsers() map[string]*User {
 	return UserList
 }
-
-/*
-func UpdateUser(uid string, uu *User) (a *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Profile.Age != 0 {
-			u.Profile.Age = uu.Profile.Age
-		}
-		if uu.Profile.Address != "" {
-			u.Profile.Address = uu.Profile.Address
-		}
-		if uu.Profile.Gender != "" {
-			u.Profile.Gender = uu.Profile.Gender
-		}
-		if uu.Profile.Email != "" {
-			u.Profile.Email = uu.Profile.Email
-		}
-		return u, nil
-	}
-	return nil, errors.New("User Not Exist")
-}
-
-func Login(username, password string) bool {
-	for _, u := range UserList {
-		if u.Username == username && u.Password == password {
-			return true
-		}
-	}
-	return false
-}
-
-func DeleteUser(uid string) {
-	delete(UserList, uid)
-} */
